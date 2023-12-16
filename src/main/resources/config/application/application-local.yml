@@ -1,0 +1,20 @@
+spring:
+  # H2 Setting Info (H2 Console에 접속하기 위한 설정정보 입력)
+#  h2:
+#    console:
+#      enabled: true  # H2 Console을 사용할지 여부 (H2 Console은 H2 Database를 UI로 제공해주는 기능)
+#      path: /h2-console  # H2 Console의 Path
+#  # Database Setting Info (Database를 H2로 사용하기 위해 H2연결 정보 입력)
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/note?serverTimezone=Asia/Seoul
+    username: test  # H2 접속 시 입력할 username 정보 (원하는 것으로 입력)
+    password: test # H2 접속 시 입력할 password 정보 (원하는 것으로 입력)
+  jpa:  #설정을 해주어야 Table 생성됨
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true    #쿼리문 보이도록 설정
+        format_sql: true  #SQL문 포맷 규격화
+    database-platform: org.hibernate.dialect.MySQLDialect
