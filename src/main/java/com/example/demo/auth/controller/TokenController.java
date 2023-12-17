@@ -1,9 +1,10 @@
 package com.example.demo.auth.controller;
 
-
 import com.example.demo.auth.entity.User;
 import com.example.demo.auth.repository.MemberRepository;
 import com.example.demo.auth.service.JwtService;
+import com.example.demo.common.error.BizException;
+import com.example.demo.common.error.ErrorCode;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,29 +13,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/token")
+@RequestMapping("/api")
 public class TokenController {
+
     @Autowired
     JwtService jwtService;
 
     private final MemberRepository memberRepository;
 
-    @PostMapping("/api/account/login")
+    @PostMapping("/account/login")
     public ResponseEntity login(@RequestBody Map<String, String> params,
                                 HttpServletResponse res) {
-        User member = memberRepository.findByEmailAndPwd(params.get("email"), params.get("password"));
+        List<User> users = memberRepository.findByEmailAndPwd(params.get("email"), params.get("password"));
 
-        if (member != null) {
-            int id = member.getId();
+        if (!users.isEmpty()) {
+            int id = users.get(0).getId();
             String token = jwtService.getToken("id", id);
 
-            Cookie cookie = new Cookie("token", token);
+            Cookie cookie = new Cookie("weeklyNote", token);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
 
@@ -43,11 +45,11 @@ public class TokenController {
             return new ResponseEntity<>(id, HttpStatus.OK);
         }
 
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        throw new BizException(ErrorCode.TARGET_DATA_NOT_FOUND);
     }
 
-    @GetMapping("/api/account/check")
-    public ResponseEntity check(@CookieValue(value = "token", required = false) String token) {
+    @GetMapping("/account/check")
+    public ResponseEntity check(@CookieValue(value = "weeklyNote", required = false) String token) {
 
         Claims claims = jwtService.getClaims(token);
 
@@ -59,14 +61,36 @@ public class TokenController {
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
-    @PostMapping("/api/account/logout")
+    @PostMapping("/account/logout")
     public ResponseEntity logout(HttpServletResponse res) {
-
-        Cookie cookie = new Cookie("token", null);
+        Cookie cookie = new Cookie("weeklyNote", null);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-
         res.addCookie(cookie);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/user")
+    public ResponseEntity<Object> addBookmark(@RequestBody User user){
+        List<User> users = memberRepository.findByEmailAndPwd(user.getEmail(), user.getPwd());
+
+        if(users.isEmpty()){
+            memberRepository.save(user);
+        }else{
+            throw new BizException(ErrorCode.DUPLICATE_RESOURCE);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<Object> getUserInfo(@CookieValue(value = "weeklyNote", required = false) String token){
+        Claims claims = jwtService.getClaims(token);
+
+        if (claims != null) {
+            int id = Integer.parseInt(claims.get("id").toString());
+            User user = memberRepository.findById(id).orElseThrow(null);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 }

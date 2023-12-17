@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import com.example.demo.common.error.BizException;
+import com.example.demo.common.error.ErrorCode;
 import jakarta.xml.bind.DatatypeConverter;
 import org.springframework.stereotype.Service;
 
@@ -58,8 +60,12 @@ public class JwtServiceImpl implements JwtService {
 				return claims;
 			}catch(ExpiredJwtException e) {
 				//만료됨
+				System.out.println(e.getMessage());
+				throw new BizException(ErrorCode.JWT_TOKEN_EXPIRED);
 			}catch(JwtException e){
 				//유효하지 않음
+				System.out.println(e.getMessage());
+				throw new BizException(ErrorCode.JWT_TOKEN_NOT_SUPPORTED);
 			}
 		}
 		return null;

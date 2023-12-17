@@ -15,6 +15,7 @@ public enum ErrorCode {
     JWT_TOKEN_NOT_SUPPORTED("JWT002", "잘못된 JWT 토큰입니다."),
 
     TOO_MANY_REQUEST("CIRCUIT002", "동시간 API 요청 제한 수를 초과했습니다."),
+
     ;
 
     private final String errorCode;
