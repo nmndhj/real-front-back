@@ -72,7 +72,7 @@ public class TokenController {
 
     @PostMapping("/user")
     public ResponseEntity<Object> addBookmark(@RequestBody User user){
-        List<User> users = memberRepository.findByEmailAndPwd(user.getEmail(), user.getPwd());
+        List<User> users = memberRepository.findByEmailAndPwd(user.getUserId(), user.getUserId());
 
         if(users.isEmpty()){
             memberRepository.save(user);
